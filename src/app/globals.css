@@ -1,0 +1,263 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --glass: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-thick: rgba(255, 255, 255, 0.8);
+  --orb-opacity: 0.08;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --background: #0B1220;
+  --foreground: #F8FAFC;
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-thick: rgba(11, 18, 32, 0.7);
+  --orb-opacity: 0.15;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.5s ease, color 0.5s ease;
+  min-height: 100vh;
+}
+
+/* Premium Blur Effects */
+.glass-thick {
+  background: var(--glass-thick);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode hover overrides */
+[data-theme="dark"] .glass-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+}
+
+/* Mesh Background */
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  pointer-events: none;
+  background: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+              var(--background);
+}
+
+.orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, var(--orb-opacity)) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: float 20s infinite alternate;
+  pointer-events: none;
+  z-index: -9;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(80px, 40px) scale(1.1);
+  }
+}
+
+/* Noise Texture Overlay */
+.noise {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.025;
+  z-index: -8;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.4);
+}
+
+/* Custom animations helper */
+.animate-float {
+  animation: float 10s ease-in-out infinite alternate;
+}
+
+/* Premium 3D float without breaking layout perspective or scaling */
+@keyframes mockupFloat {
+  0% {
+    transform: perspective(1000px) rotateY(-10deg) rotateX(5deg) translateY(0);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(-10deg) rotateX(5deg) translateY(-15px);
+  }
+}
+
+.animate-mockup-float {
+  animation: mockupFloat 6s ease-in-out infinite alternate;
+}
+
+/* Prevent layout shift jumping when toggling scrollbars on page change */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Prevent mobile/iOS Safari viewport auto-zooming and layout jumping on input focus */
+input, select, textarea {
+  font-size: 16px !important;
+}
+@media (min-width: 768px) {
+  input, select, textarea {
+    font-size: 14px !important;
+  }
+}
+
+/* Shimmer Skeleton Loading Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--glass-border) 25%, rgba(255, 255, 255, 0.08) 50%, var(--glass-border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Micro-interaction Helper Classes */
+.icon-slide {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.group:hover .icon-slide,
+button:hover .icon-slide {
+  transform: translateX(4px);
+}
+
+.icon-rotate {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.group:hover .icon-rotate,
+button:hover .icon-rotate {
+  transform: rotate(90deg);
+}
+
+.icon-spin {
+  transition: transform 0.6s ease;
+}
+.group:hover .icon-spin,
+button:hover .icon-spin {
+  transform: rotate(360deg);
+}
+
+/* Toast Notification Styles */
+@keyframes slideInUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-toast {
+  animation: slideInUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Modal entry animation (static, no continuous zoom/float) */
+@keyframes modalEntry {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-modal-entry {
+  animation: modalEntry 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Soft Glow Cards */
+.glass-glow-indigo {
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.glass-glow-indigo:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.15);
+  transform: translateY(-4px);
+}
+
+.glass-glow-emerald {
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.glass-glow-emerald:hover {
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 30px -5px rgba(16, 185, 129, 0.15);
+  transform: translateY(-4px);
+}
+
+.glass-glow-rose {
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.glass-glow-rose:hover {
+  border-color: rgba(244, 63, 94, 0.25);
+  box-shadow: 0 0 30px -5px rgba(244, 63, 94, 0.15);
+  transform: translateY(-4px);
+}
+
+
