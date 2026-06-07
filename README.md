@@ -1,113 +1,207 @@
-# 🪙 SplitID — Modern SaaS-Grade Group Expense Sharing
+# SplitID
 
-**SplitID** is a premium, secure, and SaaS-grade group-expense sharing application featuring a stunning glassmorphism UI, a simplified database structure on Supabase, complete Row-Level Security (RLS) policies, and an optimized debt-simplification algorithm.
+### Modern group expense sharing built around privacy, trust, and financial correctness.
 
----
+SplitID is a SaaS-grade expense sharing platform that helps friends, roommates, students, and teams track shared expenses, settle balances, and minimize repayments.
 
-## 💡 The Problem We Solve
+Unlike traditional expense-sharing applications that rely on phone numbers or open group invitations, SplitID uses unique Split IDs and a friends-only membership model to keep groups private and controlled.
 
-Traditional group-expense sharing applications face several key engineering and user experience problems:
-
-1. **Slow and Costly Calculations**: Most platforms calculate user balances dynamically on the client side or on every page request, leading to $O(N)$ computational lag as transaction histories grow.
-2. **Race Conditions & Concurrency**: If multiple group members log or edit expenses simultaneously, concurrent database writes can lead to double-ledger errors or mismatched balances.
-3. **Privacy & Security Flaws**: Users are often able to add arbitrary strangers to private groups without permission, violating user privacy.
-4. **Lack of Audibility**: Traditional expense apps do not maintain transactional logs, making it impossible to audit when an expense was edited, soft-deleted, or reversed.
-5. **Unstructured Repayments**: When a trip or dinner ends, members end up making numerous micro-transfers back and forth instead of simplifying the net debt.
-
-### 🌟 Our Solution
-* **Materialized Balance Cache (`group_balances`)**: Replaces dynamic calculations with a caching table, converting balance lookups into instant $O(1)$ operations maintained automatically by database-level triggers.
-* **Atomic PostgreSQL RPC Transactions**: All expense creations, edits, soft-deletions, and settlements run inside atomic database transactions (`create_expense_transaction`, `edit_expense_transaction`, etc.) using `SELECT FOR UPDATE` to serialize concurrent writes.
-* **Friends-Only Group Guard**: A database trigger check (`trg_group_members_friendship_check`) and frontend gatekeeper that allows users to be added to a group *only if* they have a mutual, accepted friendship status.
-* **Ledger Protection via Soft Deletes**: Deleting an expense never destroys database records; instead, it sets `deleted_at = now()`, automatically triggers balance cache reversals, and records the change in the audit trail.
-* **Comprehensive Audit Trail (`financial_audit_log`)**: Logs every single ledger mutation with before/after state captures (`old_data`, `new_data`).
-* **Settle-Up Debt Simplification**: Built-in greedy debt-minimization algorithm that reduces the absolute number of transaction transfers required to settle a group to zero.
+Built with Next.js, Supabase, PostgreSQL, and a production-grade financial ledger architecture.
 
 ---
 
-## 🛠️ Technology Stack
+## Why SplitID?
 
-| Layer | Technology |
-| :--- | :--- |
-| **Framework & Engine** | Next.js 15 (App Router), React 19, TypeScript |
-| **Styling & Theme** | TailwindCSS, Vanilla CSS, CSS Variables (Dark/Light mode support) |
-| **Icons & Visuals** | Lucide React, Framer Motion (Smooth UI micro-transitions) |
-| **Backend & Auth** | Supabase Auth (with email/password and Google OAuth support) |
-| **Database** | PostgreSQL, PL/pgSQL functions, database triggers, Row-Level Security (RLS) |
-| **Audit & Assertions** | Custom Node.js database pooler integration test suite |
+Most expense-sharing apps solve the calculation problem.
+
+SplitID focuses on solving three problems:
+
+### Privacy
+
+Users should not need to expose personal phone numbers to participate in shared expenses.
+
+Every user receives a unique Split ID that can be used to connect with friends.
+
+### Trust
+
+Only accepted friends can be invited into groups.
+
+This prevents random users from being added to private expense groups.
+
+### Financial Integrity
+
+Expense creation, edits, settlements, and deletions are handled through database transactions, audit logs, and balance caching to maintain consistent financial records.
 
 ---
 
-## 🗂️ Project Structure
+## Core Features
 
-The project maintains a clean separation between frontend presentation and backend database logic:
+### Split ID Based Friend System
 
-```
-split-id/
-├── src/
-│   ├── app/                  # Frontend page routes & layouts
-│   │   ├── layout.tsx        # Global layout wrapped with Toast & Theme Providers
-│   │   ├── globals.css       # Core styling, skeleton gradients, and transitions
-│   │   ├── dashboard/        # Dashboard view showing net balances
-│   │   ├── groups/           # Groups hub (Grid layout & creation modal)
-│   │   │   └── [id]/         # Group Details (Ledgers, live shares, settle ups)
-│   │   ├── friends/          # Friends Hub (Request management & active cards)
-│   │   ├── settlements/      # Settlements ledger history log
-│   │   └── settings/         # Profile management and dark/light modes
-│   ├── components/           # Reusable frontend UI components
-│   │   ├── CustomCursor.tsx  # Smooth trail cursor using requestAnimationFrame
-│   │   └── Toast.tsx         # Custom glassmorphic popup warning/success system
-│   └── lib/                  # Libraries and core utilities
-│       ├── debt-simplifier.ts# Debt simplification algorithm
-│       └── supabase/         # Client & Server supabase API connection hooks
-└── supabase/
-    └── migrations/           # Database Backend SQL migration scripts
+Each user receives a unique identifier.
+
+Example:
+
+```text
+PADM-7128
+ANIK-9831
+SPID-4281
 ```
 
----
+Users can:
 
-## 🚀 Setup & Installation
-
-### 1. Database Migrations
-1. In your **Supabase Dashboard**, navigate to the **SQL Editor** tab.
-2. Create a new query and paste the contents of [`supabase/migrations/20260607_init_splitid.sql`](file:///c:/Users/padhu/Desktop/split-id/supabase/migrations/20260607_init_splitid.sql).
-3. Click **Run** to set up tables, triggers, indexes, and RPC functions.
-
-### 2. Storage Bucket for Receipts
-1. Navigate to the **Storage** tab in your Supabase dashboard.
-2. Create a new bucket named exactly: **`receipts`**.
-3. Toggle the privacy setting to **Public**.
-4. Set standard policies allowing authenticated users to `Select`, `Insert`, and `Update` files.
-
-### 3. Local Environment Variables
-Create a `.env.local` file in the root of the project directory with your Supabase credentials:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anonymous-key
-```
-
-### 4. Running the Development Server
-Install dependencies and launch the application:
-```bash
-npm install
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) to view your local workspace.
+* Search friends using Split IDs
+* Send friend requests
+* Accept or reject requests
+* Maintain a trusted friend network
 
 ---
 
-## 🧪 Verification & Testing
+### Friends-Only Group Membership
 
-To verify the financial integrity, concurrency locks, and trigger actions of the platform, a dedicated integration test suite is included in the project:
-1. Ensure your Postgres pooler credentials are set up.
-2. Run the test script:
-   ```bash
-   node run_financial_tests.js
-   ```
-This will run comprehensive scenario checks including:
-* **Scenario 1**: Equal Split calculation correctness.
-* **Scenario 2**: Percentage Split calculation correctness.
-* **Scenario 3**: Multi-party Expense Editing updates.
-* **Scenario 4**: Soft Deletion and balance cache reversals.
-* **Scenario 5**: Settlements clearing balance ledgers to zero.
-* **Scenario 6**: Concurrency serialization via database-level `FOR UPDATE` locking.
-* **Scenario 7**: Friends-Only membership constraint validations.
+Groups can only contain accepted friends.
+
+This rule is enforced both:
+
+* In the frontend
+* At the database level
+
+Result:
+
+Private groups remain private.
+
+---
+
+### Flexible Expense Splitting
+
+Supports:
+
+* Equal Split
+* Percentage Split
+* Exact Amount Split
+
+Includes live validation and real-time split breakdowns before expenses are submitted.
+
+---
+
+### Receipt Attachments
+
+Upload:
+
+* Images
+* PDFs
+* Bills
+* Receipts
+
+All files are stored securely using Supabase Storage.
+
+---
+
+### Intelligent Debt Simplification
+
+SplitID automatically minimizes the number of repayments required inside a group.
+
+Instead of:
+
+```text
+A owes B
+B owes C
+```
+
+the system simplifies repayments into the smallest possible set of transactions.
+
+---
+
+### Direct Settle-Up Flow
+
+Users can record repayments directly from the group screen.
+
+The application explains exactly:
+
+* Who is paying
+* Who is receiving
+* How balances will change
+
+before the settlement is recorded.
+
+---
+
+### Financial Audit Trail
+
+Every important financial action is recorded:
+
+* Expense Created
+* Expense Edited
+* Expense Deleted
+* Settlement Created
+* Settlement Reversed
+
+Creating a complete history of ledger activity.
+
+---
+
+### High-Performance Balance Engine
+
+SplitID uses a materialized balance cache instead of recalculating balances from the entire expense history.
+
+Benefits:
+
+* Faster dashboard loads
+* O(1) balance lookups
+* Better scalability for large groups
+
+---
+
+## Technology Stack
+
+| Layer          | Technology                    |
+| -------------- | ----------------------------- |
+| Frontend       | Next.js 15, React, TypeScript |
+| Styling        | Tailwind CSS, Framer Motion   |
+| Backend        | Supabase                      |
+| Database       | PostgreSQL                    |
+| Authentication | Supabase Auth                 |
+| Storage        | Supabase Storage              |
+| Security       | Row Level Security (RLS)      |
+
+---
+
+## How It Works
+
+### 1. Create an Account
+
+Sign up and receive your unique Split ID.
+
+### 2. Add Friends
+
+Search users using their Split ID and send friend requests.
+
+### 3. Create a Group
+
+Create a group and add accepted friends.
+
+### 4. Record Expenses
+
+Log shared expenses using equal, percentage, or exact splits.
+
+### 5. Review Balances
+
+Track who owes whom in real time.
+
+### 6. Settle Up
+
+Record repayments and clear balances.
+
+---
+
+## Architecture Highlights
+
+* Atomic PostgreSQL Transactions
+* Financial Audit Logging
+* Soft Deletes
+* Materialized Balance Cache
+* Concurrency Protection
+* Database-Level Validation
+* Row-Level Security
+
+Designed for correctness, consistency, and scalability.
