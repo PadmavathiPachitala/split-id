@@ -24,30 +24,28 @@ export default function SignupPage() {
     setError(null)
 
     try {
-      // 1. Submit to local API which inserts directly to database
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      const apiData = await res.json()
-
-      if (!res.ok) {
-        throw new Error(apiData.error || 'Failed to create account.')
-      }
-
-      // 2. Automatically sign in the user now that they are in auth.users
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // Use native Supabase Client sign up, which is highly reliable and handles auto-login or verification out-of-the-box
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
       })
 
-      if (signInError) throw signInError
+      if (signUpError) throw signUpError
 
-      toast.success('Account created successfully! Welcome to SplitID.')
-      router.push('/dashboard')
-      router.refresh()
+      if (data?.session) {
+        toast.success('Account created successfully! Welcome to SplitID.')
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        // If email confirmation is enabled in Supabase, show the check email success view
+        setSuccess(true)
+        toast.success('Registration successful! Please check your email to verify your account.')
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.')
       toast.error(err.message || 'Failed to create account.')
